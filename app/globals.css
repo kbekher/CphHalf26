@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-brand-orange: #ff4d00;
+  --color-brand-dark: #2c2a26;
+  --color-brand-light: #f4f4f4;
+  --color-brand-surface: #3a3834;
+  --color-brand-border: #4a4844;
+  --color-brand-muted: #9a9894;
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-brand-dark);
+  color: var(--color-brand-light);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+}
