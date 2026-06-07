@@ -187,58 +187,7 @@ export function getMeals(wIdx: number): Record<string, DayMeals> {
   // Race week (week 14, index 14)
   if (wIdx === 14) {
     return {
-      "Monday (easy run)": {
-        badge: "b-run",
-        meals: [
-          mealRotations.runDay[1].breakfast!,
-          mealRotations.runDay[1].postRun!,
-          mealRotations.runDay[1].lunch!,
-          mealRotations.runDay[1].snack!,
-          mealRotations.runDay[1].dinner!,
-        ],
-      },
-      Tuesday: {
-        badge: "b-rest",
-        meals: [
-          mealRotations.restDay[1].breakfast!,
-          mealRotations.restDay[1].snack1!,
-          mealRotations.restDay[1].lunch!,
-          mealRotations.restDay[1].snack2!,
-          mealRotations.restDay[1].dinner!,
-        ],
-      },
-      Wednesday: { badge: "b-rest", meals: [] },
-      "Thursday (shakeout)": {
-        badge: "b-run",
-        meals: [
-          mealRotations.runDay[1].breakfast!,
-          mealRotations.runDay[1].postRun!,
-          mealRotations.runDay[1].lunch!,
-          mealRotations.runDay[1].snack!,
-          mealRotations.runDay[1].dinner!,
-        ],
-      },
-      Friday: {
-        badge: "b-rest",
-        meals: [
-          mealRotations.restDay[1].breakfast!,
-          mealRotations.restDay[1].snack1!,
-          mealRotations.restDay[1].lunch!,
-          mealRotations.restDay[1].snack2!,
-          mealRotations.restDay[1].dinner!,
-        ],
-      },
-      "Saturday (carb load)": {
-        badge: "b-rest",
-        meals: [
-          mealRotations.runDay[1].breakfast!,
-          mealRotations.runDay[1].postRun!,
-          mealRotations.runDay[1].lunch!,
-          mealRotations.runDay[1].snack!,
-          mealRotations.runDay[1].dinner!,
-        ],
-      },
-      "Sunday — RACE DAY": {
+      "Race week": {
         badge: "b-race",
         meals: mealRotations.raceWeek as Meal[],
       },
@@ -256,56 +205,67 @@ export function getMeals(wIdx: number): Record<string, DayMeals> {
   // Monday: interval days in speed phase, else easy run
   const mondayMeals: Meal[] = [];
   if (isSpeedPhase && intVariant) {
-    if (intVariant.pre) mondayMeals.push(intVariant.pre);
-    if (intVariant.postRun) mondayMeals.push(intVariant.postRun);
-    if (intVariant.lunch) mondayMeals.push(intVariant.lunch);
-    if (intVariant.snack) mondayMeals.push(intVariant.snack);
-    if (intVariant.dinner) mondayMeals.push(intVariant.dinner);
+    if (intVariant.pre) mondayMeals.push({ ...intVariant.pre, type: "pre-run (2h before)" });
+    if (intVariant.postRun) mondayMeals.push({ ...intVariant.postRun, type: "post-run (within 45 min)" });
+    if (intVariant.lunch) mondayMeals.push({ ...intVariant.lunch, type: "lunch" });
+    if (intVariant.snack) mondayMeals.push({ ...intVariant.snack, type: "snack" });
+    if (intVariant.dinner) mondayMeals.push({ ...intVariant.dinner, type: "dinner" });
   } else if (runVariant) {
-    if (runVariant.breakfast) mondayMeals.push(runVariant.breakfast);
-    if (runVariant.postRun) mondayMeals.push(runVariant.postRun);
-    if (runVariant.lunch) mondayMeals.push(runVariant.lunch);
-    if (runVariant.snack) mondayMeals.push(runVariant.snack);
-    if (runVariant.dinner) mondayMeals.push(runVariant.dinner);
+    if (runVariant.breakfast) mondayMeals.push({ ...runVariant.breakfast, type: "breakfast" });
+    if (runVariant.lunch) mondayMeals.push({ ...runVariant.lunch, type: "lunch" });
+    if (runVariant.snack) mondayMeals.push({ ...runVariant.snack, type: "snack" });
+    if (runVariant.dinner) mondayMeals.push({ ...runVariant.dinner, type: "dinner" });
   }
 
   // Rest days (Tue-Thu)
   const restMeals: Meal[] = [];
   if (restVariant) {
-    if (restVariant.breakfast) restMeals.push(restVariant.breakfast);
-    if (restVariant.snack1) restMeals.push(restVariant.snack1);
-    if (restVariant.lunch) restMeals.push(restVariant.lunch);
-    if (restVariant.snack2) restMeals.push(restVariant.snack2);
-    if (restVariant.dinner) restMeals.push(restVariant.dinner);
+    if (restVariant.breakfast) restMeals.push({ ...restVariant.breakfast, type: "breakfast" });
+    if (restVariant.snack1) restMeals.push({ ...restVariant.snack1, type: "snack" });
+    if (restVariant.lunch) restMeals.push({ ...restVariant.lunch, type: "lunch" });
+    if (restVariant.snack2) restMeals.push({ ...restVariant.snack2, type: "snack" });
+    if (restVariant.dinner) restMeals.push({ ...restVariant.dinner, type: "dinner" });
   }
 
   // Friday (tempo day)
   const fridayMeals: Meal[] = [];
-  if (runVariant) {
-    if (runVariant.breakfast) fridayMeals.push(runVariant.breakfast);
-    if (runVariant.postRun) fridayMeals.push(runVariant.postRun);
-    if (runVariant.lunch) fridayMeals.push(runVariant.lunch);
-    if (runVariant.snack) fridayMeals.push(runVariant.snack);
-    if (runVariant.dinner) fridayMeals.push(runVariant.dinner);
+  const fridayVariant = getMealVariant(wIdx + 1, "run");
+  if (fridayVariant) {
+    if (fridayVariant.breakfast) fridayMeals.push({ ...fridayVariant.breakfast, type: "breakfast (pre-run)" });
+    if (fridayVariant.postRun) fridayMeals.push({ ...fridayVariant.postRun, type: "post-run (within 45 min)" });
+    if (fridayVariant.lunch) fridayMeals.push({ ...fridayVariant.lunch, type: "lunch" });
+    if (fridayVariant.snack) fridayMeals.push({ ...fridayVariant.snack, type: "snack" });
+    if (fridayVariant.dinner) fridayMeals.push({ ...fridayVariant.dinner, type: "dinner" });
+  }
+
+  // Saturday (yoga buffer day)
+  const saturdayMeals: Meal[] = [];
+  const saturdayVariant = getMealVariant(wIdx + 2, "rest");
+  if (saturdayVariant) {
+    if (saturdayVariant.breakfast) saturdayMeals.push({ ...saturdayVariant.breakfast, type: "breakfast" });
+    if (saturdayVariant.lunch) saturdayMeals.push({ ...saturdayVariant.lunch, type: "lunch" });
+    if (saturdayVariant.snack2) saturdayMeals.push({ ...saturdayVariant.snack2, type: "snack" });
+    if (saturdayVariant.dinner) saturdayMeals.push({ ...saturdayVariant.dinner, type: "dinner" });
   }
 
   // Sunday (long run)
   const sundayMeals: Meal[] = [];
   if (longVariant) {
-    if (longVariant.pre) sundayMeals.push(longVariant.pre);
-    if (longVariant.midRun) sundayMeals.push(longVariant.midRun);
-    if (longVariant.postRun) sundayMeals.push(longVariant.postRun);
-    if (longVariant.lunch) sundayMeals.push(longVariant.lunch);
-    if (longVariant.dinner) sundayMeals.push(longVariant.dinner);
+    if (longVariant.pre) sundayMeals.push({ ...longVariant.pre, type: "breakfast (2h before)" });
+    if (longVariant.midRun) sundayMeals.push({ ...longVariant.midRun, type: "mid-run fuel" });
+    if (longVariant.postRun) sundayMeals.push({ ...longVariant.postRun, type: "post-run (within 30 min)" });
+    if (longVariant.lunch) sundayMeals.push({ ...longVariant.lunch, type: "lunch" });
+    if (longVariant.dinner) sundayMeals.push({ ...longVariant.dinner, type: "dinner" });
   }
 
   return {
-    "Monday": {
+    "Monday — easy run day": {
       badge: isSpeedPhase ? "b-int" : "b-run",
       meals: mondayMeals,
     },
-    "Tue / Wed / Thu / Sat — rest days": { badge: "b-rest", meals: restMeals },
-    "Friday": { badge: "b-run", meals: fridayMeals },
-    "Sunday": { badge: "b-long", meals: sundayMeals },
+    "Tue / Wed / Thu — rest days (pick any variant)": { badge: "b-rest", meals: restMeals },
+    "Friday — tempo day": { badge: "b-run", meals: fridayMeals },
+    "Saturday — yoga buffer day (no run)": { badge: "b-rest", meals: saturdayMeals },
+    "Sunday — long run day": { badge: "b-long", meals: sundayMeals },
   };
 }

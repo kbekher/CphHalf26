@@ -35,6 +35,19 @@ export function MealPlan() {
         {antiAgeByWeek[weekIndex]}
       </div>
 
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-brand-surface/80 px-3 py-2.5 text-xs leading-relaxed text-brand-muted">
+          <strong className="text-brand-light font-medium">Run / interval days</strong><br />
+          ~1700–1850 kcal · 90g protein · 190–230g carbs · 48g fat<br />
+          Carbs high, protein constant
+        </div>
+        <div className="rounded-lg bg-brand-surface/80 px-3 py-2.5 text-xs leading-relaxed text-brand-muted">
+          <strong className="text-brand-light font-medium">Rest / yoga days</strong><br />
+          ~1350–1420 kcal · 88g protein · 95–110g carbs · 50g fat<br />
+          Carbs halved, protein constant
+        </div>
+      </div>
+
       <div className="rounded-lg bg-brand-surface/80 px-3 py-2.5 text-xs leading-relaxed text-brand-muted">
         {phaseNotes[weekToPhase(weekIndex)]}
       </div>
