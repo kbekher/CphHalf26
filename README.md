@@ -4,6 +4,8 @@ Mobile-first Next.js app for a 15-week half marathon training plan and meal/groc
 
 [Preview](https://cph-half26.vercel.app/)
 
+![Cph Half 26 preview](./preview.png)
+
 ## Stack
 
 - Next.js 15 (App Router)
