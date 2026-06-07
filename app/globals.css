@@ -1,13 +1,59 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-brand-orange: #ff4d00;
-  --color-brand-dark: #2c2a26;
+  --color-brand-dark: #1F1F1E;
   --color-brand-light: #f4f4f4;
+  --color-brand-orange: #ff4d00;
   --color-brand-surface: #3a3834;
   --color-brand-border: #4a4844;
   --color-brand-muted: #9a9894;
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+
+  /* Run Activity Colors */
+  --color-run-easy-bg: #EAF3DE;
+  --color-run-easy-text: #3B6D11;
+  --color-run-tempo-bg: #E6F1FB;
+  --color-run-tempo-text: #185FA5;
+  --color-run-long-bg: #EEEDFE;
+  --color-run-long-text: #534AB7;
+  --color-run-int-bg: #FAEEDA;
+  --color-run-int-text: #854F0B;
+  --color-run-race-bg: #FAECE7;
+  --color-run-race-text: #993C1D;
+
+  /* Yoga & Strength Colors */
+  --color-yoga-flow-bg: #FBEAF0;
+  --color-yoga-flow-text: #993556;
+  --color-yoga-yin-bg: #F4C0D1;
+  --color-yoga-yin-text: #72243E;
+  --color-pilates-bg: #E1F5EE;
+  --color-pilates-text: #085041;
+  --color-hip-bg: #EEEDFE;
+  --color-hip-text: #534AB7;
+  --color-core-bg: #FAC775;
+  --color-core-text: #633806;
+
+  /* Meal Badge Colors */
+  --color-meal-int-bg: #FAEEDA;
+  --color-meal-int-text: #854F0B;
+  --color-meal-run-bg: #E6F1FB;
+  --color-meal-run-text: #185FA5;
+  --color-meal-rest-bg: #F1EFE8;
+  --color-meal-rest-text: #5F5E5A;
+  --color-meal-long-bg: #EEEDFE;
+  --color-meal-long-text: #534AB7;
+  --color-meal-race-bg: #FAECE7;
+  --color-meal-race-text: #993C1D;
+
+  /* Macro Tag Colors */
+  --color-tag-protein-bg: #E1F5EE;
+  --color-tag-protein-text: #0F6E56;
+  --color-tag-carbs-bg: #E6F1FB;
+  --color-tag-carbs-text: #185FA5;
+  --color-tag-fat-bg: #FAEEDA;
+  --color-tag-fat-text: #854F0B;
+  --color-tag-key-bg: #FAECE7;
+  --color-tag-key-text: #993C1D;
 }
 
 body {

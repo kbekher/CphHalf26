@@ -20,19 +20,19 @@ export default function Home() {
           </div>
           <div className="flex flex-wrap gap-2">
             <div className="rounded-lg border border-brand-border bg-brand-surface/50 px-3 py-2">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-brand-muted">
+              <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
                 Race day
               </p>
               <p className="text-sm font-medium text-brand-light">20.09.2026</p>
             </div>
             <div className="rounded-lg border border-brand-border bg-brand-surface/50 px-3 py-2">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-brand-muted">
+              <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
                 Target pace
               </p>
               <p className="text-sm font-medium text-brand-orange">4:44 / km</p>
             </div>
             <div className="rounded-lg border border-brand-border bg-brand-surface/50 px-3 py-2">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-brand-muted">
+              <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
                 Goal time
               </p>
               <p className="text-sm font-medium text-brand-light">1:40</p>

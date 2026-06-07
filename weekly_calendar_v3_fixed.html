@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1rem 0;font-family:var(--font-sans,system-ui,sans-serif)}
+.nav{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.nav-title{flex:1;font-size:15px;font-weight:500;color:var(--color-text-primary,#1a1a1a);text-align:center}
+.nav button{border:0.5px solid var(--color-border-secondary,#ddd);background:transparent;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px;color:var(--color-text-primary,#1a1a1a)}
+.nav button:hover{background:var(--color-background-secondary,#f5f5f5)}
+.phase-pill{font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;margin:0 auto 0.75rem;display:inline-block}
+.ph1{background:#E1F5EE;color:#0F6E56}.ph2{background:#E6F1FB;color:#185FA5}.ph3{background:#FAEEDA;color:#854F0B}.ph4{background:#FAECE7;color:#993C1D}
+.col-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.day-hdr{font-size:11px;font-weight:500;color:var(--color-text-secondary,#666);text-align:center;padding-bottom:4px;border-bottom:0.5px solid var(--color-border-tertiary,#eee);margin-bottom:3px}
+.day-cell{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,#eee);border-radius:10px;padding:7px 5px;min-height:105px;display:flex;flex-direction:column;gap:3px}
+.day-cell.true-rest{background:var(--color-background-secondary,#f9f9f9);border-style:dashed;justify-content:center;align-items:center}
+.chip{font-size:10px;font-weight:500;padding:2px 5px;border-radius:20px;line-height:1.4;text-align:center;word-break:break-word}
+.c-run-easy{background:#EAF3DE;color:#3B6D11}
+.c-run-tempo{background:#E6F1FB;color:#185FA5}
+.c-run-long{background:#EEEDFE;color:#534AB7}
+.c-run-int{background:#FAEEDA;color:#854F0B}
+.c-run-race{background:#FAECE7;color:#993C1D}
+.c-yoga-flow{background:#FBEAF0;color:#993556}
+.c-yoga-yin{background:#F4C0D1;color:#72243E}
+.c-pilates{background:#E1F5EE;color:#085041}
+.c-hip{background:#EEEDFE;color:#534AB7}
+.c-core{background:#FAC775;color:#633806}
+.detail{font-size:10px;color:var(--color-text-secondary,#666);line-height:1.4;margin-top:1px}
+.rest-label{font-size:11px;color:var(--color-text-tertiary,#aaa);text-align:center}
+.wt-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.75rem}
+.wt{font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--color-border-secondary,#ddd);background:transparent;color:var(--color-text-secondary,#666);cursor:pointer}
+.wt.active{background:var(--color-background-secondary,#f5f5f5);color:var(--color-text-primary,#1a1a1a);font-weight:500;border-color:var(--color-border-primary,#aaa)}
+.phase-bar{display:flex;gap:4px;margin-bottom:0.75rem}
+.pb{flex:1;text-align:center;font-size:10px;padding:4px 2px;border-radius:6px;cursor:pointer;border:0.5px solid transparent}
+.pb.sel{border-color:var(--color-border-primary,#aaa)}
+.legend{display:flex;flex-wrap:wrap;gap:5px;margin-top:0.85rem}
+.focus-note{font-size:12px;color:var(--color-text-secondary,#666);background:var(--color-background-secondary,#f9f9f9);border-radius:6px;padding:7px 12px;margin-bottom:0.75rem;line-height:1.6}
+.change-note{font-size:11px;color:#854F0B;background:#FAEEDA;border-radius:6px;padding:5px 10px;margin-bottom:0.6rem;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="phase-bar" id="phaseBar"></div>
+<div class="wt-row" id="weekTabs"></div>
+<div class="nav">
+  <button onclick="changeWeek(-1)">&#8592;</button>
+  <div class="nav-title" id="navTitle"></div>
+  <button onclick="changeWeek(1)">&#8594;</button>
+</div>
+<div id="phaseLabel" style="text-align:center;margin-bottom:0.6rem"></div>
+<div id="changeNote"></div>
+<div class="focus-note" id="focusNote"></div>
+<div class="col-grid">
+  <div class="day-hdr">Mon</div><div class="day-hdr">Tue</div><div class="day-hdr">Wed</div>
+  <div class="day-hdr">Thu</div><div class="day-hdr">Fri</div><div class="day-hdr">Sat</div><div class="day-hdr">Sun</div>
+</div>
+<div class="col-grid" id="calGrid" style="margin-top:4px"></div>
+<div class="legend" id="legend"></div>
+</div>
+
+<script>
+const PHASES=[
+  {label:'Phase 1',weeks:[1,2,3,4],cls:'ph1',full:'Base rebuild'},
+  {label:'Phase 2',weeks:[5,6,7,8,9],cls:'ph2',full:'Build + threshold'},
+  {label:'Phase 3',weeks:[10,11,12,13],cls:'ph3',full:'Speed + race work'},
+  {label:'Phase 4',weeks:[14,15],cls:'ph4',full:'Taper + race'},
+];
+
+// Each day: {run, yoga, rest, raceDay}
+// KEY FIX: tempo on Friday, long run on Sunday — always a rest day between them (Saturday = yoga only)
+const weeks=[
+  // ── PHASE 1 ──
+  {phase:1,label:'Base rebuild — ease in',
+   change:null,
+   focus:'Two easy runs this week. No pressure. Wear the toe bandage. Get the daily yoga habit locked in.',
+   days:[
+    {run:null,yoga:{t:'c-pilates',l:'Pilates core',d:'Glute bridges, dead bugs, planks — 20min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip focus',d:'Pigeon, lizard, figure-four — 25min'}},
+    {run:null,yoga:{t:'c-core',l:'Core flow',d:'Bird dogs, side planks, roll-downs — 20min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-easy',l:'Easy run',d:'4–5 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Calves, hips — 15min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip + glute',d:'Clamshells, bridges, IT band — 20min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'6–8 km easy'},yoga:{t:'c-yoga-yin',l:'Yin recovery',d:'Full body — 30min'}},
+  ]},
+  {phase:1,label:'Base rebuild',
+   change:null,
+   focus:'Three runs this week if energy allows. Tempo and long run are always separated by a rest/yoga day.',
+   days:[
+    {run:null,yoga:{t:'c-hip',l:'Hip mobility',d:'Pigeon, hip flexor lunge, IT band — 25min'}},
+    {run:null,yoga:{t:'c-core',l:'Core pilates',d:'Dead bugs, planks, bird dogs — 20min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'5 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hamstrings, glutes — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-easy',l:'Easy run',d:'5 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips + calves — 15min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip + glute',d:'Deep pigeon, fire hydrants — 25min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'8 km, last 1 km quicker'},yoga:{t:'c-yoga-yin',l:'Yin recovery',d:'Hips, calves, feet — 30min'}},
+  ]},
+  {phase:1,label:'Base rebuild + first tempo',
+   change:'⚡ First tempo this week — Friday. Long run Sunday. Saturday is always a yoga-only buffer between them.',
+   focus:'Tempo on Friday, yoga-only Saturday, long run Sunday. This separation is maintained every week from now on.',
+   days:[
+    {run:null,yoga:{t:'c-pilates',l:'Pilates core',d:'Stability: bird dogs, side planks — 20min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip focus',d:'Pigeon, half-moon, glute work — 25min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'5 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Calves, quads, hips — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'6 km: 1km WU, 3km@5:10, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'IT band, quads — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin yoga',d:'Buffer day — deep hip + quad holds — 30min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'9 km easy'},yoga:{t:'c-yoga-yin',l:'Yin recovery',d:'Full body — 30min'}},
+  ]},
+  {phase:1,label:'Recovery week',
+   change:null,
+   focus:'Lighter week — 2 runs only. Use the extra energy for longer yoga sessions. Adapt, absorb, recover.',
+   days:[
+    {run:null,yoga:{t:'c-hip',l:'Hip mobility',d:'Pigeon, lizard, figure-four — 30min'}},
+    {run:null,yoga:{t:'c-core',l:'Core pilates',d:'Full core: planks, roll-downs, dead bugs — 25min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'5 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips + calves — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:null,yoga:{t:'c-hip',l:'Hip + glute',d:'Glute activation, hip flexor stretch — 25min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin yoga',d:'Deep recovery: hip, IT band, calf — 35min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'8 km easy'},yoga:{t:'c-yoga-flow',l:'Recovery flow',d:'Full body — 20min'}},
+  ]},
+
+  // ── PHASE 2 ──
+  {phase:2,label:'Build — volume climbing',
+   change:null,
+   focus:'Tempo Friday, yoga Saturday buffer, long run Sunday every week from here. Volume rises steadily.',
+   days:[
+    {run:null,yoga:{t:'c-hip',l:'Hip focus',d:'Deep pigeon, lateral hip, IT band — 30min'}},
+    {run:null,yoga:{t:'c-pilates',l:'Pilates core',d:'Single-leg bridges, dead bugs — 25min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'6 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips + hamstrings — 20min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'7 km: 1km WU, 4km@5:05, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'Quads, IT band — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'Hip flexor, quad, piriformis — 35min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'11 km easy-mod'},yoga:{t:'c-yoga-yin',l:'Yin recovery',d:'Calves, feet, full body — 30min'}},
+  ]},
+  {phase:2,label:'Build + threshold',
+   change:null,
+   focus:'First 13 km long run. Post long-run yin is important — give it time. Easy run added Wednesday.',
+   days:[
+    {run:null,yoga:{t:'c-hip',l:'Hip mobility',d:'Pigeon, warrior, lizard — 30min'}},
+    {run:null,yoga:{t:'c-pilates',l:'Pilates core',d:'Anti-rotation, bird dogs, single-leg — 25min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'6 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hip flexors, glutes — 20min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'7 km: 1km WU, 4km@5:00, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'IT band, hamstrings — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'Deep quad, piriformis, hip — 35min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'13 km, last 3@5:00'},yoga:{t:'c-yoga-yin',l:'Yin recovery',d:'Full body recovery — 35min'}},
+  ]},
+  {phase:2,label:'Recovery week',
+   change:null,
+   focus:'Mid-plan check. Lighter week. Use the energy for longer yoga. Check in on how the toe is feeling.',
+   days:[
+    {run:null,yoga:{t:'c-hip',l:'Hip focus',d:'Extended pigeon, figure-four, clamshells — 35min'}},
+    {run:null,yoga:{t:'c-pilates',l:'Pilates core',d:'Full core routine — 25min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'5 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips + calves — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'6 km: 1km WU, 3km@5:00, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'Quads, glutes — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'Deep recovery — 35min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'11 km easy'},yoga:{t:'c-yoga-flow',l:'Recovery flow',d:'Full body — 20min'}},
+  ]},
+  {phase:2,label:'Build — 14 km long',
+   change:null,
+   focus:'14 km long run Sunday. Core stability is critical as mileage rises — do not skip Wednesday pilates.',
+   days:[
+    {run:null,yoga:{t:'c-hip',l:'Hip mobility',d:'Pigeon, IT band, hip flexor lunge — 30min'}},
+    {run:null,yoga:{t:'c-pilates',l:'Pilates core',d:'Single-leg stability, planks, roll-downs — 25min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'6 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips + hamstrings — 20min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'8 km: 1km WU, 5km@4:55, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'IT band, calves — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'IT band, quad, piriformis — 35min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'14 km, last 4@5:00'},yoga:{t:'c-yoga-yin',l:'Yin recovery',d:'Feet, calves, full body — 35min'}},
+  ]},
+  {phase:2,label:'Peak build — 16 km',
+   change:'📈 Biggest build week. 16 km long run Sunday is your longest yet. Fuel it properly.',
+   focus:'16 km long run Sunday. This is your peak volume week before speed phase begins. Eat and sleep well.',
+   days:[
+    {run:null,yoga:{t:'c-hip',l:'Hip focus',d:'Deep pigeon, warrior holds, lateral hip — 35min'}},
+    {run:null,yoga:{t:'c-pilates',l:'Pilates core',d:'Full stability: planks, dead bugs, bridges — 25min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'7 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hip flexors, glutes — 20min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'8 km: 1km WU, 5km@4:55, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'Quads, IT band — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'Hip flexor, calf, piriformis — 35min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'16 km, last 4@4:44–4:50'},yoga:{t:'c-yoga-yin',l:'Deep yin',d:'Full body + foot stretch — 40min'}},
+  ]},
+
+  // ── PHASE 3 ──
+  {phase:3,label:'Speed — intervals begin',
+   change:'⚡ Structure change: intervals Monday, easy run Wednesday, tempo Friday, long run Sunday. Never two quality sessions back-to-back.',
+   focus:'Intervals Monday — never on empty. Easy Wednesday for recovery. Tempo Friday. Long Sunday. Saturday always yoga buffer.',
+   days:[
+    {run:{t:'c-run-int',l:'Intervals',d:'5×800m@4:25–4:35 + WU/CD'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips, calves, IT band — 20min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip focus',d:'Pigeon, figure-four, hip flexor lunge — 30min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'6 km easy — flush the legs'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Light full body — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'7 km: 1km WU, 4km@4:55, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'Quads, IT band — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'Deep hip + IT band — 35min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'14 km, last 3@race pace'},yoga:{t:'c-yoga-yin',l:'Yin recovery',d:'Calves, quads, feet — 30min'}},
+  ]},
+  {phase:3,label:'Race-specific intensity',
+   change:null,
+   focus:'Hardest week so far. Keep Tue and Sat yoga gentle — body has a lot to absorb. Sleep is training.',
+   days:[
+    {run:{t:'c-run-int',l:'Intervals',d:'6×800m@4:20–4:30 + WU/CD'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips, hamstrings — 20min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip mobility',d:'Gentle pigeon, lateral hip — 25min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'6 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Light flush — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'8 km: 1km WU, 5km@4:50, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'IT band, piriformis — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'IT band, piriformis, quad holds — 35min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'15 km, last 5@race pace'},yoga:{t:'c-yoga-yin',l:'Deep yin recovery',d:'Hips, calves, feet — 40min'}},
+  ]},
+  {phase:3,label:'Peak week — max effort',
+   change:'🏆 Peak week. This is your hardest week of training. Intervals Mon, easy Wed, tempo Fri, longest long run Sun.',
+   focus:'After this week the body gets to recover and sharpen. Trust the process — this is where fitness is built.',
+   days:[
+    {run:{t:'c-run-int',l:'Intervals',d:'6×1km@4:30–4:40 + WU/CD'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips, calves, quads — 20min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip focus',d:'Pigeon, lateral hip, figure-four — 30min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'6 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Light flush — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'8 km: 1km WU, 5km@4:45, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'Quads, IT band — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'Deep IT band, quad, piriformis — 35min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'16 km, last 6@4:44–4:50'},yoga:{t:'c-yoga-yin',l:'Deep yin recovery',d:'Full body — 45min'}},
+  ]},
+  {phase:3,label:'Step-down week',
+   change:'📉 Step-down week (not full taper). Drop volume ~30%, keep some intensity. Body consolidates fitness.',
+   focus:'Half marathon taper is 10–14 days, not 3 weeks. This week steps down volume while keeping sharpness.',
+   days:[
+    {run:{t:'c-run-int',l:'Intervals',d:'4×800m@4:25–4:35 — shorter session'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Hips, hamstrings — 20min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip yin',d:'Extended pigeon, IT band, hip flexor — 35min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'5 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Light — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'6 km: 1km WU, 3km@4:50, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'Quads, calves — 15min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin buffer',d:'Full body recovery — 30min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'11 km easy — enjoy it'},yoga:{t:'c-yoga-flow',l:'Recovery flow',d:'Easy — 20min'}},
+  ]},
+
+  // ── PHASE 4 ──
+  {phase:4,label:'Taper — freshen up',
+   change:'✅ True taper. Volume drops significantly. Keep legs sharp with short tempo. No new stress.',
+   focus:'Volume halved. Legs should feel restless — that is good. Trust the taper. Focus on sleep and nutrition.',
+   days:[
+    {run:null,yoga:{t:'c-hip',l:'Hip mobility',d:'Familiar pigeon + IT band — 25min'}},
+    {run:null,yoga:{t:'c-pilates',l:'Pilates core',d:'Light activation — 20min'}},
+    {run:{t:'c-run-easy',l:'Easy run',d:'5 km easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Familiar hips + calves — 15min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-tempo',l:'Tempo',d:'5 km: 1km WU, 2km@race pace, 2km CD'},yoga:{t:'c-yoga-flow',l:'Post-tempo flow',d:'Short — 10min'}},
+    {run:null,yoga:{t:'c-yoga-yin',l:'Yin yoga',d:'IT band, hip flexor — 25min'}},
+    {run:{t:'c-run-long',l:'Long run',d:'9 km easy — no pressure'},yoga:{t:'c-yoga-flow',l:'Recovery flow',d:'Light full body — 15min'}},
+  ]},
+  {phase:4,label:'Race week',
+   change:'🏁 Race week. Minimal running. No new movements in yoga. Rest Wednesday. Race Sunday.',
+   focus:'Keep sessions very short and familiar. Carb-load Thu–Sat. Race morning: oats + banana 2–2.5h before.',
+   days:[
+    {run:{t:'c-run-easy',l:'Easy run',d:'4 km very easy'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Short familiar flow — 10min'}},
+    {run:null,yoga:{t:'c-hip',l:'Hip + toe care',d:'Gentle pigeon, big toe stretch, foot roll — 20min'}},
+    {run:null,yoga:null,rest:true},
+    {run:{t:'c-run-easy',l:'Shakeout',d:'3 km + 4×30sec strides'},yoga:{t:'c-yoga-flow',l:'Post-run flow',d:'Calves, hips — 10min'}},
+    {run:null,yoga:{t:'c-core',l:'Core activation',d:'Light glutes + core only — 15min'}},
+    {run:null,yoga:{t:'c-hip',l:'Pre-race mobility',d:'Gentle hip + glute activation — 15min'}},
+    {run:{t:'c-run-race',l:'RACE DAY',d:'Half marathon — 1:40!'},yoga:null,raceDay:true},
+  ]},
+];
+
+let cur=0;
+
+function renderPhaseBar(){
+  const bar=document.getElementById('phaseBar');
+  bar.innerHTML='';
+  PHASES.forEach(p=>{
+    const b=document.createElement('div');
+    b.className='pb '+p.cls+(p.weeks.includes(cur+1)?' sel':'');
+    b.textContent=p.label;
+    b.onclick=()=>{cur=p.weeks[0]-1;render()};
+    bar.appendChild(b);
+  });
+}
+
+function renderTabs(){
+  const t=document.getElementById('weekTabs');
+  t.innerHTML='';
+  weeks.forEach((_,i)=>{
+    const b=document.createElement('button');
+    b.className='wt'+(i===cur?' active':'');
+    b.textContent='W'+(i+1);
+    b.onclick=()=>{cur=i;render()};
+    t.appendChild(b);
+  });
+}
+
+function render(){
+  const w=weeks[cur];
+  document.getElementById('navTitle').textContent='Week '+(cur+1)+' of 15';
+  const pInfo=PHASES.find(p=>p.weeks.includes(cur+1));
+  document.getElementById('phaseLabel').innerHTML=`<span class="phase-pill ${pInfo.cls}">${pInfo.label} — ${w.label}</span>`;
+
+  const cn=document.getElementById('changeNote');
+  cn.innerHTML=w.change?`<div class="change-note">${w.change}</div>`:'';
+
+  document.getElementById('focusNote').textContent=w.focus;
+
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML='';
+  w.days.forEach(day=>{
+    const cell=document.createElement('div');
+    if(day.rest){
+      cell.className='day-cell true-rest';
+      cell.innerHTML='<span class="rest-label">full rest</span>';
+    } else if(day.raceDay){
+      cell.className='day-cell';
+      cell.style.borderColor='#D85A30';
+      if(day.run) cell.innerHTML+=`<span class="chip ${day.run.t}">${day.run.l}</span><span class="detail">${day.run.d}</span>`;
+    } else {
+      cell.className='day-cell';
+      if(day.run) cell.innerHTML+=`<span class="chip ${day.run.t}">${day.run.l}</span><span class="detail">${day.run.d}</span>`;
+      if(day.yoga) cell.innerHTML+=`<span class="chip ${day.yoga.t}">${day.yoga.l}</span><span class="detail">${day.yoga.d}</span>`;
+    }
+    grid.appendChild(cell);
+  });
+
+  renderPhaseBar();
+  renderTabs();
+
+  document.getElementById('legend').innerHTML=[
+    ['c-run-easy','Easy run'],['c-run-tempo','Tempo'],['c-run-long','Long run'],
+    ['c-run-int','Intervals'],['c-run-race','Race'],
+    ['c-hip','Hip focus'],['c-core','Core/pilates'],['c-yoga-flow','Yoga flow'],['c-yoga-yin','Yin yoga'],
+  ].map(([c,l])=>`<span class="chip ${c}">${l}</span>`).join('');
+}
+
+function changeWeek(d){cur=Math.max(0,Math.min(14,cur+d));render();}
+render();
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import { ACTIVITY_CHIP_STYLES } from "@/lib/data/activity-styles";
+import { COLORS } from "@/lib/data/activity-styles";
 import { cn } from "@/lib/utils";
 
 interface ActivityChipProps {
@@ -8,18 +8,25 @@ interface ActivityChipProps {
 }
 
 export function ActivityChip({ type, label, detail }: ActivityChipProps) {
+  const colors = COLORS[type as keyof typeof COLORS];
+  const bgColor = colors?.bg || "#f5f5f5";
+  const textColor = colors?.text || "#333";
+
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-1">
       <span
-        className={cn(
-          "inline-block rounded-full px-2 py-0.5 text-center text-[10px] font-medium leading-tight",
-          ACTIVITY_CHIP_STYLES[type] ?? ACTIVITY_CHIP_STYLES.supplement,
-        )}
+        className="inline-block rounded-full px-2 py-0.5 text-center text-xs font-medium leading-tight border"
+        style={{
+          backgroundColor: bgColor,
+          color: textColor,
+          borderColor: textColor,
+          borderWidth: "0.5px",
+        }}
       >
         {label}
       </span>
       {detail && (
-        <p className="text-[10px] leading-snug text-brand-muted">{detail}</p>
+        <p className="text-xs leading-snug text-brand-muted">{detail}</p>
       )}
     </div>
   );

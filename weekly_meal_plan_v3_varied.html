@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,system-ui,sans-serif)}
+.wrap{padding:1rem 0}
+.tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem}
+.tab{font-size:12px;padding:4px 12px;border-radius:20px;border:0.5px solid var(--color-border-secondary,#ddd);background:transparent;color:var(--color-text-secondary,#666);cursor:pointer}
+.tab.active{background:var(--color-background-secondary,#f5f5f5);color:var(--color-text-primary,#1a1a1a);font-weight:500;border-color:var(--color-border-primary,#aaa)}
+.sec{display:none}.sec.active{display:block}
+.week-nav{display:flex;align-items:center;gap:8px;margin-bottom:0.75rem}
+.week-nav button{border:0.5px solid var(--color-border-secondary,#ddd);background:transparent;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:13px;color:var(--color-text-primary,#1a1a1a)}
+.week-label{flex:1;text-align:center;font-size:14px;font-weight:500;color:var(--color-text-primary,#1a1a1a)}
+.wt-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.75rem}
+.wt{font-size:11px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--color-border-secondary,#ddd);background:transparent;color:var(--color-text-secondary,#666);cursor:pointer}
+.wt.active{background:var(--color-background-secondary,#f5f5f5);color:var(--color-text-primary,#1a1a1a);font-weight:500}
+.note{font-size:12px;color:var(--color-text-secondary,#666);background:var(--color-background-secondary,#f9f9f9);border-radius:6px;padding:8px 12px;margin-bottom:0.75rem;line-height:1.6}
+.antiage{font-size:11px;background:#E1F5EE;color:#0F6E56;border-radius:6px;padding:6px 10px;margin-bottom:0.75rem;line-height:1.6}
+.macro-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0.85rem}
+.macro-card{background:var(--color-background-secondary,#f9f9f9);border-radius:6px;padding:7px 10px;font-size:11px;color:var(--color-text-secondary,#666);line-height:1.5}
+.macro-card b{color:var(--color-text-primary,#1a1a1a);font-weight:500}
+.day-hdr{font-size:12px;font-weight:500;color:var(--color-text-secondary,#666);margin:0.75rem 0 0.4rem;padding-bottom:4px;border-bottom:0.5px solid var(--color-border-tertiary,#eee);display:flex;align-items:center;gap:8px}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px}
+.b-int{background:#FAEEDA;color:#854F0B}
+.b-run{background:#E6F1FB;color:#185FA5}
+.b-rest{background:#F1EFE8;color:#5F5E5A}
+.b-long{background:#EEEDFE;color:#534AB7}
+.b-race{background:#FAECE7;color:#993C1D}
+.meal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-bottom:4px}
+.mc{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,#eee);border-radius:10px;padding:0.65rem 0.8rem}
+.mc-type{font-size:10px;font-weight:500;letter-spacing:.04em;color:var(--color-text-tertiary,#aaa);margin-bottom:3px;text-transform:uppercase}
+.mc-name{font-size:13px;font-weight:500;color:var(--color-text-primary,#1a1a1a);margin-bottom:3px}
+.mc-note{font-size:11px;color:var(--color-text-secondary,#666);line-height:1.5}
+.tag{font-size:10px;padding:1px 6px;border-radius:20px;display:inline-block;margin-top:3px;margin-right:2px}
+.t-p{background:#E1F5EE;color:#0F6E56}
+.t-c{background:#E6F1FB;color:#185FA5}
+.t-f{background:#FAEEDA;color:#854F0B}
+.t-k{background:#FAECE7;color:#993C1D}
+.grocery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px}
+.gcat{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,#eee);border-radius:10px;padding:0.7rem}
+.gcat-title{font-size:11px;font-weight:500;color:var(--color-text-secondary,#666);margin-bottom:6px}
+.gi{font-size:12px;color:var(--color-text-primary,#1a1a1a);padding:3px 0;display:flex;align-items:flex-start;gap:6px;cursor:pointer;line-height:1.4}
+.gi.checked{color:var(--color-text-tertiary,#aaa);text-decoration:line-through}
+.gi input{accent-color:#1D9E75;width:13px;height:13px;margin-top:2px;flex-shrink:0}
+.superfood{color:#0F6E56;font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="tabs">
+  <button class="tab active" onclick="showTab('meals',this)">Meal plan</button>
+  <button class="tab" onclick="showTab('grocery',this)">Grocery list</button>
+  <button class="tab" onclick="showTab('rules',this)">Recomp + anti-aging rules</button>
+</div>
+
+<!-- MEALS -->
+<div id="meals" class="sec active">
+  <div class="week-nav">
+    <button onclick="cW(-1)">&#8592;</button>
+    <span class="week-label" id="mL"></span>
+    <button onclick="cW(1)">&#8594;</button>
+  </div>
+  <div class="wt-row" id="mT"></div>
+  <div class="antiage" id="aaNote"></div>
+  <div class="macro-row" id="macroRow"></div>
+  <div class="note" id="mNote"></div>
+  <div id="mContent"></div>
+</div>
+
+<!-- GROCERY -->
+<div id="grocery" class="sec">
+  <div class="week-nav">
+    <button onclick="cW(-1)">&#8592;</button>
+    <span class="week-label" id="gL"></span>
+    <button onclick="cW(1)">&#8594;</button>
+  </div>
+  <div class="wt-row" id="gT"></div>
+  <div class="note" id="gNote"></div>
+  <div id="gContent"></div>
+</div>
+
+<!-- RULES -->
+<div id="rules" class="sec">
+  <div style="display:grid;gap:8px">
+    <div class="mc"><div class="mc-type">Recomposition core rule</div><div class="mc-name">Carb cycle around training</div><div class="mc-note">Run days: full carbs, full protein. Rest days: cut starchy carbs by ~half, keep protein identical at 85–90g. The surplus on run days builds muscle; the mild deficit on rest days burns fat. Scale stays similar — body composition shifts.</div></div>
+    <div class="mc"><div class="mc-type">Protein — every single day</div><div class="mc-name">85–90g daily, non-negotiable</div><div class="mc-note">Spread across 4–5 meals. Sources rotate: fatty fish, chicken, eggs, Greek yogurt, cottage cheese, tofu, tempeh, legumes, edamame. Never two identical protein sources in the same day.</div><span class="tag t-p">priority #1</span></div>
+    <div class="mc"><div class="mc-type">Anti-aging superfoods — every week</div><div class="mc-name">These 6 are always on your list</div><div class="mc-note"><b>Blueberries/strawberries</b> — anthocyanins, reduce inflammation.<br><b>Spinach/kale</b> — iron, folate, K2, antioxidants.<br><b>Avocado</b> — healthy fat, reduces cortisol.<br><b>Green tea</b> — EGCG, fat oxidation, anti-inflammatory.<br><b>Fatty fish</b> — omega-3, heart + joint + brain health.<br><b>Dark chocolate/cacao</b> — flavonoids, mood, recovery.</div><span class="tag t-p">every week</span></div>
+    <div class="mc"><div class="mc-type">Post-run window</div><div class="mc-name">Always eat within 30–45 min</div><div class="mc-note">Never skip recovery nutrition after hard sessions. Protein + carbs together. Skipping costs you the adaptation the session was meant to create.</div><span class="tag t-k">non-negotiable on hard days</span></div>
+    <div class="mc"><div class="mc-type">What to avoid</div><div class="mc-name">These slow recomp and accelerate aging</div><div class="mc-note">Alcohol, ultra-processed foods, excess added sugar, skipping breakfast on training days, under-eating on hard run days. You don't need to count calories — quality and timing do the work.</div></div>
+    <div class="mc"><div class="mc-type">Green tea protocol</div><div class="mc-name">2–3 cups daily</div><div class="mc-note">Morning on empty stomach (boosts fat oxidation). Between meals, not with meals (can reduce iron absorption from plant sources). Avoid within 2h of bedtime.</div></div>
+  </div>
+</div>
+</div>
+
+<script>
+let curW=0;
+const phaseFor=[0,0,0,0,1,1,1,1,1,2,2,2,2,3,3];
+
+const antiAgeByWeek=[
+  'This week: blueberries in breakfast yogurt daily · spinach in omelettes and salads · avocado with eggs · green tea morning · salmon twice · dark chocolate square post-dinner',
+  'This week: strawberries + oats every morning · kale in stir-fry and soups · avocado on toast · green tea 2–3× daily · trout + sardines · cacao in smoothie',
+  'This week: blueberries + chia bowls · spinach omelette · avocado in rice bowls · green tea before runs · salmon + mackerel · dark chocolate after long run',
+  'Recovery week: all 6 superfoods maintained · focus on blueberries for inflammation post-runs · double down on green tea · avocado every day',
+  'Build week: strawberries in post-run recovery smoothie · kale in soups and stir-fry · avocado in grain bowls · green tea pre-run · salmon 3× · cacao energy balls',
+  'This week: blueberries in overnight oats · wilted spinach with fish dinners · avocado daily · green tea morning + afternoon · trout + tuna · dark chocolate',
+  'Recovery week: extra blueberries and strawberries for antioxidant recovery · kale chips as snack · avocado toast · green tea · sardines on rye · cacao nibs on yogurt',
+  'This week: mixed berry smoothies · spinach + egg frittatas · avocado + chickpea bowls · green tea · salmon + mackerel · dark chocolate post long run',
+  'Peak build: double berry portions this week — higher training load = higher inflammation · kale in everything · avocado generously · green tea · salmon 3× · cacao',
+  'Interval week: blueberries in recovery smoothies · spinach with grilled chicken · avocado rice bowls · green tea before intervals · fatty fish 3× · dark chocolate recovery treat',
+  'Speed week: strawberry + banana pre-run fuel · kale stir-fry · avocado on toast daily · green tea 2–3× · salmon + trout + sardines · cacao in overnight oats',
+  'Step-down week: maintain all superfoods · lighter portions match lighter training · blueberries + yogurt · spinach omelette · avocado · green tea · salmon · chocolate',
+  'PEAK week: maximum antioxidant support — berries twice daily · kale daily · avocado at every lunch · green tea morning + midday · salmon 3× + sardines · dark chocolate nightly',
+  'Taper: all superfoods maintained · reduce portions with training · blueberries + oats · spinach + eggs · avocado · green tea · salmon · small dark chocolate',
+  'Race week: familiar superfoods only · blueberries in morning oats · spinach in pasta · avocado daily · green tea (not race morning) · salmon Tue–Thu · no new foods from Fri',
+];
+
+const phaseNotes=[
+  'Phase 1 — Base rebuild. Run days: full fuel. Rest days: halve starchy carbs (rice, oats, pasta), keep protein at 85–90g. Establish the habit of eating protein at every meal. Meals rotate across the week — no two identical dinners.',
+  'Phase 2 — Build. Volume rising. Bigger carb portions on long run day. Rest days stay lower carb. Protein sources rotate daily. Green tea 2–3× daily from this phase.',
+  'Phase 3 — Speed. Interval days need pre-session carbs — never run fast on empty. Post-interval protein window is critical. Highest protein demand of the plan.',
+  'Phase 4 — Taper + race. Reduce food volume with training. Keep protein high. Familiar foods only — nothing new from Friday of race week. Carb-load Thu–Sat.',
+];
+
+// 7 meal slots per day type, rotating by week within phase
+const mealRotations={
+  // run days (easy + tempo) — 9 variants cycling through 15 weeks
+  runDay:[
+    // variant 0 (weeks 1,5,9,13)
+    {breakfast:{n:'Oat porridge + blueberries + boiled eggs',d:'60g oats, oat milk, handful blueberries, drizzle honey. 2 boiled eggs on the side. 1.5–2h pre-run.',tags:['t-p','t-c']},
+     postRun:{n:'Greek yogurt + strawberries + granola',d:'200g full-fat Greek yogurt, fresh strawberries, 2 tbsp granola. Within 45 min.',tags:['t-p','t-k']},
+     lunch:{n:'Brown rice bowl + grilled chicken + avocado',d:'120g brown rice, 150g grilled chicken, avocado, cucumber, edamame, tamari dressing.',tags:['t-p','t-c','t-f']},
+     snack:{n:'Cottage cheese + walnuts + apple',d:'150g cottage cheese, small handful walnuts, 1 apple. High protein, healthy fat.',tags:['t-p','t-f']},
+     dinner:{n:'Baked mackerel + sweet potato + kale',d:'150g mackerel, roasted sweet potato wedges, steamed kale with lemon and olive oil.',tags:['t-p','t-c']}},
+    // variant 1 (weeks 2,6,10,14)
+    {breakfast:{n:'Scrambled eggs + spinach + rye toast + berries',d:'3 eggs scrambled with wilted spinach, 1 slice rye toast, side of mixed berries.',tags:['t-p','t-c']},
+     postRun:{n:'Protein smoothie with cacao',d:'Oat milk, banana, 1 tbsp cacao powder, Greek yogurt, tbsp almond butter. Within 45 min.',tags:['t-p','t-k']},
+     lunch:{n:'Quinoa + tuna + roasted veg',d:'80g quinoa, tinned tuna in olive oil, roasted courgette, peppers, cherry tomatoes, lemon.',tags:['t-p','t-c']},
+     snack:{n:'Avocado on rye + pumpkin seeds',d:'1 slice rye, half avocado mashed, pumpkin seeds, pinch of chilli.',tags:['t-f','t-p']},
+     dinner:{n:'Chicken stir-fry + soba noodles + pak choi',d:'150g chicken strips, soba noodles, pak choi, garlic, ginger, tamari. Quick and high protein.',tags:['t-p','t-c']}},
+    // variant 2 (weeks 3,7,11,15)
+    {breakfast:{n:'Overnight oats + chia + strawberries',d:'60g oats, chia seeds, oat milk, fresh strawberries, tbsp almond butter. Prep night before.',tags:['t-p','t-c']},
+     postRun:{n:'Chocolate milk + banana',d:'250ml chocolate milk, 1 banana. Ideal 3:1 carb:protein ratio. Fast and effective.',tags:['t-p','t-k']},
+     lunch:{n:'Lentil + sweet potato soup + rye bread',d:'Red lentils, sweet potato, cumin, turmeric, coconut milk. 1 slice rye. Filling and anti-inflammatory.',tags:['t-p','t-c']},
+     snack:{n:'Boiled eggs + hummus + veg sticks',d:'2 boiled eggs, 3 tbsp hummus, carrot and cucumber sticks.',tags:['t-p','t-f']},
+     dinner:{n:'Trout + bulgur wheat + roasted beetroot',d:'150g trout fillet, 80g bulgur wheat, roasted beetroot, wilted spinach, lemon tahini dressing.',tags:['t-p','t-c','t-f']}},
+    // variant 3 (week 4,8,12)
+    {breakfast:{n:'Blueberry oat pancakes + Greek yogurt',d:'Oat flour pancakes (oats + egg + oat milk), fresh blueberries, Greek yogurt on top. Run day treat.',tags:['t-p','t-c']},
+     postRun:{n:'Rice + poached egg + avocado',d:'80g brown rice, 1 poached egg, half avocado, squeeze of lemon. Proper recovery meal.',tags:['t-p','t-c','t-f']},
+     lunch:{n:'Chicken + farro + roasted veg bowl',d:'150g chicken breast, 80g farro, roasted sweet potato, kale, tahini dressing.',tags:['t-p','t-c']},
+     snack:{n:'Kefir + banana + dark chocolate',d:'150ml kefir, 1 banana, 2 squares dark chocolate. Probiotics + quick carb + antioxidants.',tags:['t-p','t-c','t-f']},
+     dinner:{n:'Sardines on toast + big green salad',d:'Tinned sardines on wholegrain toast, large salad: spinach, avocado, cucumber, cherry tomatoes, olive oil.',tags:['t-p','t-c','t-f']}},
+  ],
+  // rest days — 4 variants
+  restDay:[
+    {breakfast:{n:'3-egg omelette + feta + spinach',d:'3 eggs, wilted spinach, feta, mushrooms. No toast today — lower carb on rest days.',tags:['t-p']},
+     snack1:{n:'Greek yogurt + blueberries + chia seeds',d:'200g Greek yogurt, blueberries, 1 tbsp chia seeds. No granola on rest days.',tags:['t-p','t-f']},
+     lunch:{n:'Chickpea + spinach + tomato stew',d:'Chickpeas, spinach, tinned tomatoes, garlic, cumin, smoked paprika. Serve without grains.',tags:['t-p']},
+     snack2:{n:'Avocado + boiled egg + cucumber',d:'Half avocado, 1 boiled egg, cucumber slices, pinch of salt. Simple, filling, high protein.',tags:['t-p','t-f']},
+     dinner:{n:'Baked salmon + roasted asparagus + cauliflower',d:'150g salmon, roasted asparagus, cauliflower florets, olive oil, garlic. No grains — protein + veg day.',tags:['t-p','t-f']}},
+    {breakfast:{n:'Kale + strawberry smoothie bowl',d:'Kale, frozen strawberries, banana (half only), oat milk, topped with seeds and walnuts. Lower sugar rest day version.',tags:['t-p','t-f']},
+     snack1:{n:'Cottage cheese + walnuts + cacao nibs',d:'150g cottage cheese, walnuts, 1 tsp cacao nibs. Protein + healthy fat + antioxidant.',tags:['t-p','t-f']},
+     lunch:{n:'Tofu + kale stir-fry + cauliflower rice',d:'200g firm tofu cubed, kale, peppers, tamari, garlic, ginger. Cauliflower rice instead of grains.',tags:['t-p']},
+     snack2:{n:'Hummus + veg + hard-boiled egg',d:'3 tbsp hummus, celery and carrot sticks, 1 boiled egg.',tags:['t-p','t-f']},
+     dinner:{n:'Chicken thigh + roasted courgette + salad',d:'150g chicken thigh (skin-off), roasted courgette and red onion, big green salad, olive oil.',tags:['t-p','t-f']}},
+    {breakfast:{n:'Smoked salmon + avocado + cucumber',d:'80g smoked salmon, half avocado sliced, cucumber, capers, squeeze of lemon. No bread — rest day.',tags:['t-p','t-f']},
+     snack1:{n:'Green tea + dark chocolate + almonds',d:'Cup of green tea, 2 squares dark chocolate, small handful almonds. Anti-aging afternoon snack.',tags:['t-f']},
+     lunch:{n:'Tempeh + roasted veg bowl (no grains)',d:'150g tempeh cubed, roasted sweet potato (small), broccoli, tahini dressing.',tags:['t-p','t-f']},
+     snack2:{n:'Greek yogurt + strawberries',d:'200g Greek yogurt, fresh strawberries, pinch of cinnamon.',tags:['t-p']},
+     dinner:{n:'Grilled trout + green beans + wilted spinach',d:'150g trout, steamed green beans, wilted spinach with garlic and olive oil. Clean, light rest day dinner.',tags:['t-p','t-f']}},
+    {breakfast:{n:'Veggie frittata slice + berries',d:'Pre-bake frittata: eggs, courgette, peppers, onion, feta. Slice for breakfast with mixed berries.',tags:['t-p']},
+     snack1:{n:'Avocado + pumpkin seeds + lemon',d:'Half avocado with pumpkin seeds and lemon juice. Simple and nutrient-dense.',tags:['t-f']},
+     lunch:{n:'Lentil salad + poached egg + kale',d:'Green lentils, cherry tomatoes, kale, capers, mustard dressing, poached egg on top.',tags:['t-p']},
+     snack2:{n:'Cottage cheese + cacao nibs + walnut',d:'150g cottage cheese, 1 tsp cacao nibs, crushed walnuts.',tags:['t-p','t-f']},
+     dinner:{n:'Mackerel + roasted fennel + spinach salad',d:'150g mackerel fillet, roasted fennel, large spinach salad with avocado and lemon.',tags:['t-p','t-f']}},
+  ],
+  // long run days
+  longDay:[
+    {pre:{n:'Big porridge + banana + 2 eggs',d:'80g oats, 1 large banana, honey, oat milk. Plus 2 boiled eggs. 2h before. Hydrate from waking.',tags:['t-c','t-p']},
+     midRun:{n:'2 medjool dates at halfway',d:'Natural fast sugar, easy on stomach. Carry water or small electrolyte bottle.',tags:['t-c']},
+     postRun:{n:'Chocolate milk + banana immediately',d:'250ml chocolate milk + 1 banana within 30 min. Then proper meal within 90 min.',tags:['t-k','t-p']},
+     lunch:{n:'Wholemeal pasta + tuna + spinach + cherry tomatoes',d:'150g pasta cooked, tinned tuna, spinach, cherry tomatoes, olive oil, parmesan. High carb recovery.',tags:['t-c','t-p']},
+     dinner:{n:'Chicken + roast sweet potato + broccoli',d:'150g chicken, roasted sweet potato, broccoli, olive oil. Keep carbs in for overnight recovery.',tags:['t-p','t-c']}},
+    {pre:{n:'Blueberry oat porridge + peanut butter + eggs',d:'80g oats, blueberries, 1 tbsp peanut butter, oat milk. 2 boiled eggs. 2h before.',tags:['t-c','t-p']},
+     midRun:{n:'Banana chunk or gel at 8–9 km',d:'Half a banana or energy gel. Sip water at every station.',tags:['t-c']},
+     postRun:{n:'Rice + poached eggs + avocado',d:'80g brown rice, 2 poached eggs, half avocado, drizzle of olive oil. Within 45 min.',tags:['t-k','t-p','t-f']},
+     lunch:{n:'Brown rice bowl + grilled salmon + edamame',d:'120g brown rice, 130g salmon, edamame, avocado, sesame seeds, soy-ginger dressing.',tags:['t-c','t-p','t-f']},
+     dinner:{n:'Soba noodles + chicken + kale stir-fry',d:'Soba noodles, chicken strips, kale, garlic, ginger, tamari. High carb + protein post long run.',tags:['t-p','t-c']}},
+  ],
+  // interval days
+  intDay:[
+    {pre:{n:'Oat porridge + banana + almond butter',d:'60g oats, 1 banana, 1 tbsp almond butter. Do NOT run intervals on empty. 2h before.',tags:['t-c','t-p']},
+     postRun:{n:'Protein smoothie — berries + cacao',d:'Oat milk, Greek yogurt, mixed berries, 1 tbsp cacao, tbsp oats. Intervals cause most muscle damage — prioritise protein.',tags:['t-p','t-k']},
+     lunch:{n:'Brown rice + grilled chicken + avocado + spinach',d:'100g rice, 150g chicken, avocado, big handful spinach, olive oil. Solid recomp recovery meal.',tags:['t-p','t-c','t-f']},
+     snack:{n:'Cottage cheese + blueberries + walnuts',d:'150g cottage cheese, blueberries, walnuts. Anti-inflammatory post-interval snack.',tags:['t-p','t-f']},
+     dinner:{n:'Salmon + quinoa + roasted veg + kale',d:'150g salmon, 80g quinoa, roasted courgette and peppers, wilted kale. Omega-3 for overnight muscle repair.',tags:['t-p','t-f','t-c']}},
+    {pre:{n:'Strawberry overnight oats + boiled egg',d:'60g oats, strawberries, chia seeds, oat milk — prepped night before. 1 boiled egg alongside.',tags:['t-c','t-p']},
+     postRun:{n:'Greek yogurt + banana + dark chocolate',d:'200g Greek yogurt, 1 banana, 1–2 squares dark chocolate. Fast protein + carbs + antioxidant.',tags:['t-p','t-k']},
+     lunch:{n:'Farro + trout + roasted beetroot + avocado',d:'80g farro, 130g trout, roasted beetroot, avocado, lemon, olive oil. Nutrient-dense recomp bowl.',tags:['t-p','t-c','t-f']},
+     snack:{n:'Avocado on rye + pumpkin seeds + green tea',d:'1 slice rye, half avocado, pumpkin seeds. Cup of green tea.',tags:['t-f']},
+     dinner:{n:'Chicken + sweet potato mash + kale',d:'150g chicken breast, sweet potato mash with olive oil, steamed kale. Classic recomp dinner.',tags:['t-p','t-c']}},
+  ],
+  raceWeek:[
+    {type:'Mon–Wed — normal',n:'Familiar run-day meals',d:'Eat exactly as you have been training with. No new foods.',tags:[]},
+    {type:'Thu–Sat — carb load',n:'Add 50–80g extra pasta or rice per meal',d:'Keep protein the same. Reduce raw veg slightly to avoid bloating. Familiar sauces only.',tags:['t-c']},
+    {type:'Sat evening — race eve',n:'Wholemeal pasta + salmon + simple spinach salad',d:'Olive oil, garlic, no heavy sauce. Early dinner by 7pm. Practice this exact meal.',tags:['t-c','t-p']},
+    {type:'Race morning — 2.5h before',n:'Oats + banana + honey + 500ml water',d:'60g oats, 1 banana, drizzle honey. This exact meal. No eggs, no fat-heavy food.',tags:['t-c','t-k']},
+    {type:'Post-race',n:'Banana immediately, then celebrate',d:'Banana or gel right after finish line. Then within an hour: protein-rich meal with carbs. You earned it.',tags:['t-k']},
+  ],
+};
+
+function getMealVariant(wIdx, type){
+  if(type==='run') return mealRotations.runDay[wIdx%4];
+  if(type==='rest') return mealRotations.restDay[wIdx%4];
+  if(type==='long') return mealRotations.longDay[wIdx%2];
+  if(type==='int') return mealRotations.intDay[wIdx%2];
+  return null;
+}
+
+function tagHtml(tags){
+  const map={t_p:'protein',t_c:'carbs',t_f:'omega-3/fat',t_k:'key step'};
+  return (tags||[]).map(t=>`<span class="tag ${t}">${t==='t-p'?'protein':t==='t-c'?'carbs':t==='t-f'?'omega-3':t==='t-k'?'key':'?'}</span>`).join('');
+}
+
+function mCard(type,m){
+  return `<div class="mc"><div class="mc-type">${type}</div><div class="mc-name">${m.n}</div><div class="mc-note">${m.d}</div>${tagHtml(m.tags||[])}</div>`;
+}
+
+function renderMeals(){
+  document.getElementById('mL').textContent='Week '+(curW+1)+' of 15';
+  renderWtabs('mT');
+  document.getElementById('aaNote').textContent='🌿 Anti-aging this week: '+antiAgeByWeek[curW];
+  const p=phaseFor[curW];
+  const mv=getMealVariant(curW,'run');
+  const rv=getMealVariant(curW,'rest');
+  const lv=getMealVariant(curW,'long');
+  const iv=getMealVariant(curW,'int');
+  document.getElementById('macroRow').innerHTML=`
+    <div class="macro-card"><b>Run / interval days</b><br>~1700–1850 kcal · 90g protein · 190–230g carbs · 48g fat<br>Carbs high, protein constant</div>
+    <div class="macro-card"><b>Rest / yoga days</b><br>~1350–1420 kcal · 88g protein · 95–110g carbs · 50g fat<br>Carbs halved, protein constant</div>`;
+  document.getElementById('mNote').textContent=phaseNotes[p];
+
+  let html='';
+  if(curW===14){
+    html+=`<div class="day-hdr"><span class="badge b-race">Race week</span></div>`;
+    html+=`<div class="meal-grid">${mealRotations.raceWeek.map(m=>`<div class="mc"><div class="mc-type">${m.type}</div><div class="mc-name">${m.n}</div><div class="mc-note">${m.d}</div>${tagHtml(m.tags)}</div>`).join('')}</div>`;
+  } else {
+    // interval day (Mon in speed phase, else easy run)
+    const isSpeedPhase=curW>=9&&curW<=12;
+    if(isSpeedPhase&&iv){
+      html+=`<div class="day-hdr"><span class="badge b-int">Monday — interval day</span></div><div class="meal-grid">`;
+      html+=mCard('pre-run (2h before)',iv.pre);
+      html+=mCard('post-run (within 45 min)',iv.postRun);
+      html+=mCard('lunch',iv.lunch);
+      html+=mCard('snack',iv.snack);
+      html+=mCard('dinner',iv.dinner);
+      html+=`</div>`;
+    } else {
+      html+=`<div class="day-hdr"><span class="badge b-run">Monday — easy run day</span></div><div class="meal-grid">`;
+      html+=mCard('breakfast',mv.breakfast);
+      html+=mCard('lunch',mv.lunch);
+      html+=mCard('snack',mv.snack);
+      html+=mCard('dinner',mv.dinner);
+      html+=`</div>`;
+    }
+    html+=`<div class="day-hdr"><span class="badge b-rest">Tue / Wed / Thu — rest days (pick any variant)</span></div><div class="meal-grid">`;
+    html+=mCard('breakfast',rv.breakfast);
+    html+=mCard('snack',rv.snack1);
+    html+=mCard('lunch',rv.lunch);
+    html+=mCard('snack',rv.snack2);
+    html+=mCard('dinner',rv.dinner);
+    html+=`</div>`;
+    html+=`<div class="day-hdr"><span class="badge b-run">Friday — tempo day</span></div><div class="meal-grid">`;
+    const tv=getMealVariant(curW+1,'run');
+    html+=mCard('breakfast (pre-run)',tv.breakfast);
+    html+=mCard('post-run (within 45 min)',tv.postRun);
+    html+=mCard('lunch',tv.lunch);
+    html+=mCard('snack',tv.snack);
+    html+=mCard('dinner',tv.dinner);
+    html+=`</div>`;
+    html+=`<div class="day-hdr"><span class="badge b-rest">Saturday — yoga buffer day (no run)</span></div><div class="meal-grid">`;
+    const sv=getMealVariant(curW+2,'rest');
+    html+=mCard('breakfast',sv.breakfast);
+    html+=mCard('lunch',sv.lunch);
+    html+=mCard('snack',sv.snack2);
+    html+=mCard('dinner',sv.dinner);
+    html+=`</div>`;
+    html+=`<div class="day-hdr"><span class="badge b-long">Sunday — long run day</span></div><div class="meal-grid">`;
+    html+=mCard('breakfast (2h before)',lv.pre);
+    html+=mCard('mid-run fuel',lv.midRun);
+    html+=mCard('post-run (within 30 min)',lv.postRun);
+    html+=mCard('lunch',lv.lunch);
+    html+=mCard('dinner',lv.dinner);
+    html+=`</div>`;
+  }
+  document.getElementById('mContent').innerHTML=html;
+}
+
+const groceries=[
+  // Phase 1 weeks 1–4
+  {note:'Phase 1 (weeks 1–4) — base grocery list. Check pantry before buying staples.',cats:[
+    {title:'🐟 Fatty fish (rotate weekly)',items:['Salmon fillets ×2','Mackerel fillets ×1','Sardines tinned ×2','Smoked salmon 80g','Tinned tuna ×2']},
+    {title:'🥩 Other protein',items:['Chicken breast 300g','Eggs ×14','Greek yogurt full-fat 1kg','Cottage cheese 250g','Tempeh 200g','Feta 100g']},
+    {title:'🫐 Superfoods (weekly must)',items:['Blueberries fresh or frozen 300g','Strawberries 300g','Spinach large bag','Kale 200g','Avocados ×3','Dark chocolate 85%+ bar','Green tea (box)']},
+    {title:'🍠 Carbs (run days)',items:['Rolled oats 750g','Brown rice 500g','Rye bread 1 loaf','Sweet potatoes ×3','Wholemeal pasta 500g','Quinoa 300g']},
+    {title:'🥦 Veg',items:['Broccoli','Courgette ×2','Cherry tomatoes','Peppers ×2','Cucumber','Carrots','Mushrooms','Asparagus','Cauliflower','Fennel']},
+    {title:'🥜 Nuts, seeds, pulses',items:['Red lentils 400g','Chickpeas tinned ×2','Edamame frozen 200g','Walnuts 100g','Almond butter jar','Pumpkin seeds','Chia seeds','Hummus 250g']},
+    {title:'🧴 Pantry',items:['Olive oil','Oat milk 1L','Tamari / soy sauce','Tahini','Honey small','Turmeric','Cumin','Garlic','Ginger fresh','Lemons ×3','Cacao powder or nibs']},
+  ]},
+  // Phase 2 weeks 5–9
+  {note:'Phase 2 (weeks 5–9) — build grocery list. Higher volume = more food needed.',cats:[
+    {title:'🐟 Fatty fish (rotate)',items:['Salmon fillets ×3','Trout ×1','Mackerel ×1','Sardines ×2 tins','Tinned tuna ×2','Smoked salmon 80g']},
+    {title:'🥩 Other protein',items:['Chicken breast 400g','Eggs ×16','Greek yogurt 1kg','Cottage cheese 300g','Tofu firm 200g','Tempeh 200g','Feta 100g','Kefir 300ml']},
+    {title:'🫐 Superfoods (weekly must)',items:['Blueberries 300g','Strawberries 300g','Spinach large bag','Kale 300g','Avocados ×4','Dark chocolate 85%+ ×2 bars','Green tea (restock if needed)']},
+    {title:'🍠 Carbs (run + long run days)',items:['Rolled oats 1kg','Brown rice 750g','Wholemeal pasta 750g','Soba noodles 200g','Farro 300g','Sweet potatoes ×4','Rye bread','Bulgur wheat 300g','Medjool dates ×10 (mid-run)']},
+    {title:'🥦 Veg',items:['Broccoli ×2','Pak choi','Courgette ×3','Cherry tomatoes','Peppers ×4','Beetroot ×2','Red onion ×2','Green beans','Asparagus','Fennel']},
+    {title:'🥜 Nuts, seeds, pulses',items:['Chickpeas ×2 tins','Green lentils 400g','Edamame 200g','Walnuts 150g','Peanut butter jar','Almond butter','Chia seeds','Pumpkin seeds','Sesame seeds']},
+    {title:'🧴 Pantry + drinks',items:['Olive oil','Oat milk 1.5L','Chocolate milk small (post long run)','Electrolyte tablets ×6','Tamari','Tahini','Smoked paprika','Turmeric','Garlic','Ginger','Lemons ×4','Cacao powder','Coconut milk small tin']},
+  ]},
+  // Phase 3 weeks 10–13
+  {note:'Phase 3 (weeks 10–13) — speed phase. Highest training load = highest nutrition demand.',cats:[
+    {title:'🐟 Fatty fish (rotate)',items:['Salmon ×3 fillets','Trout ×1','Mackerel ×1','Sardines ×3 tins','Tinned tuna ×3','Smoked salmon 80g']},
+    {title:'🥩 Other protein',items:['Chicken breast 500g','Eggs ×16','Greek yogurt 1kg','Cottage cheese 300g','Tempeh 200g','Tofu 200g']},
+    {title:'🫐 Superfoods (weekly must)',items:['Blueberries 400g (double — inflammation)','Strawberries 300g','Spinach large bag','Kale large bag','Avocados ×4','Dark chocolate 85%+ ×2','Green tea (restock)']},
+    {title:'🍠 Carbs (intervals + long run)',items:['Rolled oats 1kg','Brown rice 750g','Wholemeal pasta 750g','Quinoa 300g','Sweet potatoes ×5','Farro 300g','Rye bread','Medjool dates ×14','Energy gels ×4 (16km runs)']},
+    {title:'🥦 Veg',items:['Broccoli ×2','Kale','Pak choi','Courgette ×2','Cherry tomatoes','Peppers ×4','Beetroot','Green beans','Asparagus','Cauliflower']},
+    {title:'🥜 Nuts, seeds, pulses',items:['Chickpeas ×2','Lentils 400g','Edamame 200g','Walnuts 150g','Almond butter','Peanut butter','Chia + pumpkin + sesame seeds']},
+    {title:'🧴 Pantry + drinks',items:['Olive oil','Oat milk 1.5L','Chocolate milk (post long runs)','Electrolyte ×8','Tamari','Tahini','Cacao powder','Turmeric','Garlic','Ginger','Lemons ×5']},
+  ]},
+  // Phase 4 weeks 14–15
+  {note:'Phase 4 — taper + race week. Familiar foods only. Nothing new from Friday of race week.',cats:[
+    {title:'🐟 Fatty fish',items:['Salmon ×3 fillets','Smoked salmon 80g','Tinned tuna ×2','Sardines ×1']},
+    {title:'🥩 Other protein',items:['Chicken breast 400g','Eggs ×14','Greek yogurt 1kg','Cottage cheese 250g']},
+    {title:'🫐 Superfoods (weekly must)',items:['Blueberries 300g','Strawberries 300g','Spinach bag','Kale','Avocados ×3','Dark chocolate 85%+ ×1','Green tea']},
+    {title:'🍠 Carbs (carb load Thu–Sat race week)',items:['Rolled oats 750g','Wholemeal pasta 1kg (carb load)','Brown rice 500g','Sweet potatoes ×3','Rye bread','Bananas ×10 (race week essential)','Medjool dates ×8 (race day fuel)','1 tested energy gel']},
+    {title:'🥦 Veg (familiar only)',items:['Broccoli','Spinach','Cherry tomatoes','Peppers','Courgette','Simple salad leaves']},
+    {title:'🥜 Pulses + nuts',items:['Chickpeas ×1','Almond butter','Mixed nuts','Hummus 200g']},
+    {title:'🧴 Drinks + pantry',items:['Oat milk','Chocolate milk (post race!)','Electrolyte ×6','Olive oil','Honey','Familiar sauces ONLY']},
+  ]},
+];
+
+function renderGrocery(){
+  document.getElementById('gL').textContent='Week '+(curW+1)+' of 15';
+  renderWtabs('gT');
+  const p=phaseFor[curW];
+  const g=groceries[p];
+  document.getElementById('gNote').textContent=g.note;
+  document.getElementById('gContent').innerHTML=`<div class="grocery-grid">${g.cats.map(cat=>`<div class="gcat"><div class="gcat-title">${cat.title}</div>${cat.items.map((item,j)=>{
+    const isSF=['Blueberries','Strawberries','Spinach','Kale','Avocado','Dark chocolate','Green tea'].some(sf=>item.startsWith(sf));
+    return `<label class="gi"><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> <span${isSF?' class="superfood"':''}>${item}</span></label>`;
+  }).join('')}</div>`).join('')}</div>`;
+}
+
+function renderWtabs(id){
+  const t=document.getElementById(id);
+  t.innerHTML='';
+  for(let i=0;i<15;i++){
+    const b=document.createElement('button');
+    b.className='wt'+(i===curW?' active':'');
+    b.textContent='W'+(i+1);
+    b.onclick=()=>{curW=i;renderAll()};
+    t.appendChild(b);
+  }
+}
+
+function renderAll(){renderMeals();renderGrocery();}
+function cW(d){curW=Math.max(0,Math.min(14,curW+d));renderAll();}
+function showTab(id,btn){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+renderAll();
+</script>
+</body>
+</html>
